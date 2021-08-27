@@ -2,17 +2,22 @@
 
 Everyone loves visualizations.
 
+<!-- Solve all problems, except geom_line and the group aesthetic. -->
+
 <!-- Heather owns this Chapter! Change anything an everything! Change anything you like in Getting Started. -->
 
-<!-- Cut out all R and R Studio section. Place cool/useful parts of it in Getting Started. -->
+<!-- Go through all comments. Keep the ones you agree with. Delete the ones you do not. Once you fix whatever a comment complains about, delete the comment. -->
 
-<!-- Talk more about aesthetics (i.e., aes()) in Basic plots. Make more use of color and fill. Explain how you can use either constants (like "steelblue") or variables (like party) when using these aesthetics. -->
+<!-- Make presidential approval animated. -->
 
-<!-- Add the formula for median, like this one: https://math.stackexchange.com/questions/1097546/what-is-the-general-formula-for-calculating-the-median -->
+<!-- Delete any graphics, like select, which are not useful! Don't forget to delete the png files from  01-visualization/images. -->
 
-<!-- Better explain Tidyverse. -->
+<!-- Delete any image which we are not using. You only need to check this Rmd. -->
 
-<!-- Don't do this yet. Same with the `group` aesthetic, especially for line plots. Don't use the unemployment data anymore. Use two or three of the temperature series from primer.data::temperature. -->
+<!-- Talk more about aesthetics (i.e., aes()) in Basic plots. Make more use of color and fill. Explain how you can use either constants (like "steelblue") or variables (like party) when using these aesthetics. Make them as comfortable with color and fill as they are with data and mapping.  -->
+
+
+<!-- Hold off on this for now. Don't use the unemployment data anymore. Use two or three of the temperature series from primer.data::temperature.  I have similar concerns about the `group` aesthetic, especially for line plots. But maybe group is too difficult? But can you possibly do geom_line without showing groups? -->
 
 
 ```{r, message = FALSE, echo = FALSE}
@@ -21,130 +26,37 @@ library(ggthemes)
 library(scales)
 library(gapminder)
 
-# first plot, I'm keeping the old plot in here because it takes too long to load
-# the trump plot in plotly
+president_data <- read_csv("01-visualization/data/president_approval.csv",
+                           show_col_types = FALSE) %>% 
+  pivot_longer(names_to = "approval_type",
+               values_to = "rate",
+               cols = c(-president, -enddate)) %>% 
+  mutate(enddate = lubridate::mdy(enddate),
+         enddate = lubridate::yday(enddate),
+         enddate = as.integer(enddate - 20))
 
-gap_p <- gapminder %>%
-  filter(continent != "Oceania") %>%
-  filter(year == max(year)) %>% 
-  ggplot(aes(gdpPercap, lifeExp, color = continent)) +
-    geom_point(alpha = 0.7) +
-    geom_smooth(method = "lm", 
-                formula = y ~ x,
-                se = FALSE) + 
-    facet_wrap(~continent, nrow = 2) +
-    labs(title = "Life Expectancy and GDP per Capita",
-         subtitle = "Connection between GDP and life expectancy is weakest in Africa",
-         x = "GDP per Capita",
-         y = "Life Expectancy") +
-    scale_x_log10(breaks = c(500, 5000, 50000),
-                  labels = scales::dollar_format(accuracy = 1)) + 
-    theme_clean() + 
-    theme(legend.position = "none")
-
-
-
-# download.file(url = "",
-#              destfile = "01-visualization/data/visualization_trump_data.csv")
-
-trump_data <- read_csv("01-visualization/data/visualization_trump_data.csv",
-                       show_col_types = FALSE)
-
-trump_p <- trump_data %>% 
+hundred_days_p <- president_data %>%
   ggplot(mapping = aes(x = enddate,
                        y = rate,
                        color = approval_type)) +
-   geom_point(alpha = 0.05,
+   facet_wrap(~president) +
+   geom_point(alpha = 0.1,
               size = 0.5) +
    geom_smooth(method = "gam",
                formula = y ~ s(x, bs = "cs")) +
-   coord_cartesian(ylim = c(30, 65)) +
+   coord_cartesian(ylim = c(30,60)) +
    theme_fivethirtyeight() +
-   labs(title = "Trump's Approval and Disapproval Ratings From \n2017-2021",
-        subtitle = "His approval peaked in late 2017 but has since stayed consistent throughout.",
+   labs(title = "Approval Ratings During the First Hundred Days",
+        subtitle = "Both recent presidents had climbing disapproval ratings.",
         x = NULL,
         y = NULL,
-        color = "Approval or Disapproval")
-trump_p
+        color = NULL,
+        caption = "Source: FiveThirtyEight Data")
+
+hundred_days_p
 ```
 
 Once you have read this chapter, and completed the associated tutorials, you will be able to create graphics like this one with your data. Join us on the journey.
-
-## Basic R commands
-
-We use the terms "coding" and "programming" interchangeably. With the rest of this *Primer*, we will use a different font to distinguish regular text from `computer_code`. If you'd like to follow along with this section, you can open open the *Console pane* in RStudio.
-
-* *Running code*: the act of telling R to put our code into action. 
-
-* *Objects*: where values are stored in R. You can *assign* values to objects and display the contents of objects. Use the assignment operator `<-` to do so.  You can choose almost any name you like for an object, as long as the name does not begin with a number or a special character like `+`, `*`, `-`, `/`, `^`, etc.
-
-For example we can save the result of `4 + 3` to an object named `x`. 
-
-```{r}
-x <- 4 + 3
-```
-
-Now, whenever we type `x`, the value of 4 + 3 will appear:
-
-```{r}
-x
-```
-
-
-* *Data types*: integers, doubles/numerics, logicals, and characters. 
-  + Integers are values like -1, 0, 2, 4092. 
-  + Doubles or numerics are a larger set of values containing both the integers but also fractions and decimal values like -24.932 and 0.8.
-  + Logicals are either `TRUE` or `FALSE`. Characters are text like "cabbage", "Hamilton", or "The Wire is the greatest TV show ever."
-  + Characters are often denoted with the quotation marks around them.
-
-* *Vectors*: a collection of values. These are created using the `c()` function, where the `c` stands for **c**ombine. 
-
-For example, `c(2, 4, 6, 8)` creates a four element vector of numeric values.
-
-```{r}
-c(1, 2, 3, 4)
-```
-
-
-* *Factors*: used to represent "categorical data." We will go into detail about these and other variable types in Chapter \@ref(wrangling).
-
-<!-- Explain factors and categorical data more, even after reading wrangling I'm still somewhat unsure what it means and it might be good to have a more in-depth explanation here for those of us who aren't super familiar with data terms. Maybe just a paragraph.  -->
-
-* *Data frames*: rectangular arrangements of data. Think of a [spreadsheet](https://en.wikipedia.org/wiki/Spreadsheet). Rows correspond to *units*. Columns correspond to *variables*. Modern data frames are called *tibbles*. 
-
-<!-- It's somewhat unclear what "modern data frame" means, maybe elaborate. -->
-
-* *Boolean algebra*: `TRUE/FALSE` statements and mathematical operators such as `<` (less than), `<=` (less than or equal to), and `!=` (not equal to). For example, `4 + 2 >= 3` will return `TRUE`, but `3 + 5 <= 1` will return `FALSE`. 
-
-* *Inclusion*: Tested for with the `%in%` operator. For example, `"B" %in% c("A", "B")` returns `TRUE` while `"C" %in% c("A", "B")` returns `FALSE`. 
-
-* *Equality*: Tested for using `==`. For example, `2 + 1 == 3` compares `2 + 1` to `3` and is legal R code, returning `TRUE`. On the other hand, `2 + 1 = 3` will return an error because we can not assign one number to another. 
-
-* *Logical operators*: `&` representing "and" as well as `|` representing "or." For example, `(2 + 1 == 3) & (2 + 1 == 4)` returns `FALSE` since at least one of the two parts is not `TRUE`. On the other hand, `(2 + 1 == 3) | (2 + 1 == 4)` returns `TRUE` since at least one of the two parts is `TRUE`. 
-
-* *Functions*: perform tasks, and are also called *commands*. They take in inputs called *arguments* and return outputs. You can either manually specify a function's arguments or use the function's *default values*. 
-
-For example, `sqrt(64)` is the function `sqrt()` with 64 as its argument. 
-
-```{r}
-sqrt(64)
-```
-
-* *Help files*: provide documentation for functions and datasets. You can bring up help files by adding a `?` before the name of the object then run this in the console.
-
-* *Code comments*: are text placed after a `#` symbol. Nothing will be run after a `#` symbol, which is useful when you include comments in your code, as you always should.
-
-* *Errors, warnings, and messages*: generally reported in a red font. When there is an error, the code will not run. Read (and/or google) the message and try fix it. Warnings don't prevent code from completing. For example, if you create a scatterplot based on data with two missing values, you will see this warning: 
-
-````
-Warning message:
-Removed 2 rows containing missing values (geom_point).  
-````
-
-<!-- DK: Indent this so that it is connected to the bullet point above. -->
-
-Messages are similar. In both cases, you should fix the underlying issue until the warning/message goes away.    
-
 
 ## Looking at data
 
@@ -415,7 +327,7 @@ Almost every aspect of the code used to create this plot is identical to our sca
 
 ### `geom_histogram()`
 
-<!-- DK: All awk. Rewrite. Passing by position is important! -->
+<!-- All awk. Rewrite. Passing by position is important! -->
 
 A histogram is a plot that visualizes the *distribution* of a numerical value.
 
@@ -538,8 +450,6 @@ One of the most common plots used to visualize the distribution of categorical d
 
 We can add trend lines to the plots we create using the `geom_smooth()` function. 
 
-<!-- DK: Will handle geom_smooth().explain method, se, and formula -->
-
 Recall the following scatterplot from our previous work. 
 
 ```{r}
@@ -573,7 +483,7 @@ Note the message. R is telling us that we need to specify the `method` and `form
 
 Let's add the argument `method = "lm"`, where "lm" stands for **l**inear **m**odel. This causes the fitted line to be straight rather than curved. Let's also add the argument `formula = y ~ x`. This makes both messages go away. Again, R was not giving us an error before. It was simply telling us what options it was using since we did not specify the options ourselves.
 
-<!-- HL: should we explain why we make the argument formula = y~x? The reason is that R is concerned that we don't know exactly what model it is estimating. So, it is warning us that y is function of x. We make the warning go away by specifying that relationship in the argument. -->
+<!--UP TO YOU!  HL: should we explain why we make the argument formula = y~x? The reason is that R is concerned that we don't know exactly what model it is estimating. So, it is warning us that y is function of x. We make the warning go away by specifying that relationship in the argument. -->
 
 *Always include enough detail in your code to make those messages disappear.*
 
@@ -591,7 +501,7 @@ ggplot(trains,
               formula = y ~ x)
 ```
 
-Notice the gray section surrounding the line we plotted. This area is called the confidence interval, which is set to 95% by default. We will learn about confidence intervals in Chapter \@ref(probability). You can make the shaded are disappear by adding `se = FALSE` as another argument to `geom_smooth()`.
+Notice the gray section surrounding the line we plotted. This area is called the confidence interval, which is set to 95% by default. We will learn about confidence intervals in Chapter \@ref(probability). You can make the shaded area disappear by adding `se = FALSE` as another argument to `geom_smooth()`.
 
 ### `geom_density()`
 
@@ -623,9 +533,8 @@ ggplot(trains,
 
 The values on the y-axis are scaled so that the total area under the curve equals one. 
 
-<!-- DK: Other stuff to finish this section with? -->
 
-<!-- HL: could we just list other uncommonly used geom functions that people have the option of using if they want to and point them to another resource that they can learn from if they want? Yes!  -->
+<!-- Could we just list other uncommonly used geom functions that people have the option of using if they want to and point them to another resource that they can learn from if they want? Yes!  -->
 
 
 ## Tidyverse
@@ -709,7 +618,6 @@ trains %>%
          age < 40)
 ```
 
-<!-- DK: More examples? -->
 
 ### `select` variables
 
@@ -785,8 +693,6 @@ trains %>%
 
 ### `arrange()`
 
-<!-- DK: Where is the graphic? -->
-
 `arrange()` allows us to sort/reorder a tibble's rows according to the values of a specific variable. Unlike `filter()` or `select()`, `arrange()` does not remove any rows or columns from the tibble. Example:
 
 ```{r}
@@ -803,9 +709,7 @@ trains %>%
   arrange(desc(age))
 ```
 
-This is the first of many "pipes" which we will create in *The Primer*. First, we have the `trains` tibble. Second, we pipe that to the `select()` function. Third, we pipe the results of `select()` to the `arrange()` function. *Each step in the pipe starts with a tibble and then, once it is done, produces a tibble. It is tibbles all the way down!*
-
-<!-- DK: Need a graphic of turtle tibbles stacked on each other. -->
+This is the first of many "pipes" which we will create in *The Primer*. First, we have the `trains` tibble. Second, we pipe that to the `select()` function. Third, we pipe the results of `select()` to the `arrange()` function. *Each step in the pipe starts with a tibble and then, once it is done, produces a tibble. It is [tibbles all the way down](https://en.wikipedia.org/wiki/Turtles_all_the_way_down)!*
 
 
 ### `mutate()` 
@@ -832,7 +736,7 @@ trains <- trains %>%
   mutate(income_in_thousands = (income) / 1000)
 ```
 
-<!-- DK: Awk -->
+<!-- Awkward -->
 
 Whenever we create a new tibble, or a new variable within a tibble, we face a dilemma: Should we overwrite the existing tibble/variable or create a new one? There is no right answer. 
 
@@ -841,8 +745,6 @@ For example, instead of overwriting `trains` in the code above, we could have cr
 
 #### `if_else()`
 
-
-<!-- DK: Edit these lines from R4DS. Are there other functions which we should mention here? Do something sensible with group_by. To get `_` to work in caption title. Found at https://github.com/rstudio/bookdown/issues/209  -->
 
 `if_else()` is often used within calls to `mutate()`. It has three arguments. The first argument `test` should be a logical vector. The result will contain the value of the second argument, `yes`, when test is TRUE, and the value of the third argument, `no`, when it is FALSE. 
 
@@ -855,9 +757,6 @@ trains %>%
 ```
 
 Another function similar to `if_else()`, is `dplyr::case_when()`. `case_when()` is particularly useful inside mutate when you want to create a new variable that relies on a complex combination of existing variables. Note that there is a different version of `ifelse()` in **dplyr**: `if_else()`. This works exactly the same as the standard version but is somewhat more robust. 
-
-
-<!-- DK: More details? -->
 
 
 ### `summarize()`
@@ -891,15 +790,17 @@ $$\bar{x} = \frac{x_1 + x_2 + \cdots + x_N}{N}$$
 
 **`median()`**
 
-The median is another commonly reported measure of the center of a distribution, calculated by first sorting the vector of values from smallest to largest. The middle element in the sorted list is the *median*.  If the middle falls between two values, then the median is the mean of those two middle values. The median and the mean are the two most common measures of the *center* of a distribution. The median is more stable, less affected by outliers. There is no widely accepted symbol for the median, although $\tilde{x}$ is not uncommon.
+The median is another commonly reported measure of the center of a distribution, calculated by first sorting the vector of values from smallest to largest. The middle element in the sorted list is the *median*.  If the middle falls between two values, then the median is the mean of those two middle values. The median and the mean are the two most common measures of the *center* of a distribution. The median is more stable, less affected by outliers. There is no widely accepted symbol for the median, although $\tilde{x}$ is not uncommon. If we have $n$ data points, and $n$ is even, the median is given by:
 
+$$m(x) = {\frac{1}{2}}{(x_{\frac{n}{2}} + x_{\frac{n}{2} + 1})}$$
+If $n$ is odd, then the median is given by:
+
+$$m(x) = x_{\frac{n+1}{2}}$$
 **`sd()`**
 
 The standard deviation (*sd*) of a distribution is a measure of its variation around the mean.  
 
 $$\text{sd} = \sqrt{\frac{(x_1 - \bar{x})^2 + (x_2 - \bar{x})^2 + \cdots + (x_n - \bar{x})^2}{n - 1}}$$
-
-<!-- DK: More detail. How much does it cover? Plot a not-too-weirdish distribution and show two sd's on it. -->
 
 
 **`mad()`**
@@ -986,11 +887,10 @@ If you have a tibble which has been grouped, you can remove the grouping variabl
 
 ## Advanced Plots
 
-<!-- DK: Other stuff needed here? after_stat; plotting two geoms at once; scale_x for changing labels; scales:: for axis formatting. coord_cartesian() and xlim/ylim, which allows for zooming/rescaling graphs. Other? -->
+<!-- Other stuff needed here? after_stat; plotting two geoms at once; scale_x for changing labels; scales:: for axis formatting. coord_cartesian() and xlim/ylim, which allows for zooming/rescaling graphs. Other? -->
 
 <!-- - using scales to change the name and labels of a legend. -->
 
-<!-- - facet_grid() to facet by more than 1 variable. -->
 
 <!-- 1) Plots are ordered alphabetically if it is a character and by levels if it is a factor. Dates appear differently in plots. reorder() is useful. Cover this at start of advanced plotting. -->
 
@@ -1339,7 +1239,7 @@ Recall the plot we began the chapter with:
 
 
 ```{r, echo = FALSE}
-trump_p
+hundred_days_p
 ```
 
 You now know enough to make plots like this by yourself.
@@ -1349,7 +1249,18 @@ It is important to know that we have only seen a small part of what R offers. Fo
 ```{r, cache = TRUE}
 library(gganimate)
 
-gap_anim <- gapminder %>%
+# president_anim <- president_data %>% 
+#   ggplot(mapping = aes(x = enddate,
+#                        y = rate,
+#                        color = approval_type)) +
+#     facet_wrap(~president,
+#                nrow = 1) +
+#     geom_smooth(method = "gam",
+#                 formula = y ~s(x, bs = "cs")) +
+#     theme_fivethirtyeight() +
+#     transition_reveal(day)
+
+president_anim <- gapminder %>%
   filter(continent != "Oceania") %>%
   ggplot(aes(gdpPercap, lifeExp, color = continent)) +
     geom_point(show.legend = FALSE, alpha = 0.7) +
@@ -1364,7 +1275,7 @@ gap_anim <- gapminder %>%
     labs(title = "Year: {frame_time}") +
     shadow_wake(wake_length = 0.1, alpha = FALSE)
 
-gap_anim
+president_anim
 ```
 
 
