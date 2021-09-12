@@ -6,6 +6,9 @@
 
 <!-- Start joins with left_join, since it is most important. -->
 
+<!-- Potentially order the tips and tricks relevant to wrangling: -->
+<!-- https://moderndive.com/C-appendixC.html -->
+
 
 *Data science is data cleaning.*
 
@@ -979,7 +982,7 @@ You can also view examples of both `pivot_longer()` and `pivot_wider()` on the [
 
 Here are some topics which will prove important later in the *Primer*.
 
-### Random variables {random-variables}
+### Random variables {#random-variables}
 
 #### `sample()`
 
